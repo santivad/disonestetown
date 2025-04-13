@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disoneste Town</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
+            color: white;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        
+        #game-container {
+            position: relative;
+            width: 1280px;
+            height: 720px;
+            background-color: #333;
+            border: 4px solid #555;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+        
+        #menu-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 10;
+        }
+        
+        #game-title {
+            font-size: 48px;
+            color: #ff3366;
+            margin-bottom: 30px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        }
+
+        #rules-container {
+            width: 80%;
+            margin-bottom: 30px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ff3366;
+        }
+
+        #rules-title {
+            font-size: 24px;
+            color: #ff3366;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        #rules-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        #rules-list li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        #rules-list li::before {
+            content: "•";
+            color: #ff3366;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 24px;
+        }
+        
+        #play-button {
+            padding: 15px 60px;
+            font-size: 24px;
+            background-color: #ff3366;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        #play-button:hover {
+            background-color: #ff6699;
+            transform: scale(1.1);
+        }
+        
+        #game-screen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            background-color: #4a8;
+        }
+        
+        /* Streets and City Background */
+        .street-horizontal {
+            position: absolute;
+            height: 50px;
+            background-color: #555;
+            width: 100%;
+        }
+        
+        .street-vertical {
+            position: absolute;
+            width: 50px;
+            background-color: #555;
+            height: 100%;
+        }
+        
+        .street-marking {
+            position: absolute;
+            background-color: #fff;
+        }
+        
+        .horizontal-marking {
+            height: 5px;
+            width: 30px;
+        }
+        
+        .vertical-marking {
+            width: 5px;
+            height: 30px;
+        }
+        
+        .building {
+            position: absolute;
+            background-color: #666;
+            border: 2px solid #777;
+        }
+        
+        .building-window {
+            position: absolute;
+            background-color: #aaf;
+            border: 1px solid #99e;
+        }
+        
+        .character {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
+        
+        #player {
+            background-color: #3366ff;
+            box-shadow: 0 0 10px rgba(51, 102, 255, 0.7);
+            z-index: 5;
+        }
+        
+        #wife {
+            background-color: #ff3366;
+            box-shadow: 0 0 10px rgba(255, 51, 102, 0.7);
+        }
+        
+        #girlfriend {
+            background-color: #ffcc33;
+            box-shadow: 0 0 10px rgba(255, 204, 51, 0.7);
+        }
+        
+        #target {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: #ff00ff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.8);
+        }
+        
+        #target::before {
+            content: "D";
+            font-size: 30px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        #game-over, #game-win {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 20;
+        }
+        
+        #game-over h2, #game-win h2 {
+            font-size: 48px;
+            margin-bottom: 30px;
+        }
+        
+        #game-over h2 {
+            color: #ff3366;
+        }
+        
+        #game-win h2 {
+            color: #33ff66;
+        }
+        
+        .restart-button {
+            padding: 15px 40px;
+            font-size: 20px;
+            background-color: #3366ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .restart-button:hover {
+            background-color: #6699ff;
+            transform: scale(1.1);
+        }
+        
+        #level-display {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 18px;
+            color: white;
+            z-index: 5;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="menu-screen">
+            <h1 id="game-title">Disoneste Town</h1>
+            
+            <div id="rules-container">
+                <h2 id="rules-title">REGOLE DEL GIOCO</h2>
+                <ul id="rules-list">
+                    <li>Sei il cerchio BLU. Muoviti con i tasti freccia o WASD.</li>
+                    <li>Raggiungi il punto D viola senza farti catturare.</li>
+                    <li>La moglie (ROSSO) ti insegue direttamente.</li>
+                    <li>La fidanzata (GIALLO) ti insegue con movimenti più imprevedibili.</li>
+                    <li>Non puoi attraversare gli edifici, solo muoverti sulle strade.</li>
+                    <li>Ad ogni livello, gli inseguitori diventano più veloci.</li>
+                    <li>Usa gli edifici come ostacoli per sfuggire agli inseguitori.</li>
+                </ul>
+                
+                <div style="margin-top: 15px; text-align: center;">
+                    <div style="display: inline-block; text-align: left;">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #3366ff;"></div>
+                            <span>Tu (Giocatore)</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ff3366;"></div>
+                            <span>Moglie</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ffcc33;"></div>
+                            <span>Fidanzata</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #ff00ff;"></div>
+                            <span>Punto D (Obiettivo)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="play-button">GIOCA</button>
+        </div>
+        
+        <div id="game-screen">
+            <div id="level-display">Livello: 1</div>
+            <div id="city-layout"></div>
+            <div id="target" class="character"></div>
+            <div id="player" class="character"></div>
+            <div id="wife" class="character"></div>
+            <div id="girlfriend" class="character"></div>
+        </div>
+        
+        <div id="game-over">
+            <h2>SEI STATO SCOPERTO!</h2>
+            <button class="restart-button">RIPROVA</button>
+        </div>
+        
+        <div id="game-win">
+            <h2>HAI RAGGIUNTO LA DISONESTA!</h2>
+            <button class="restart-button">PROSSIMO LIVELLO</button>
+        </div>
+    </div>
+
+    <script>
+        // Elementi del DOM
+        const menuScreen = document.getElementById('menu-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const cityLayout = document.getElementById('city-layout');
+        const playButton = document.getElementById('play-button');
+        const gameOverScreen = document.getElementById('game-over');
+        const gameWinScreen = document.getElementById('game-win');
+        const restartButtons = document.querySelectorAll('.restart-button');
+        const player = document.getElementById('player');
+        const wife = document.getElementById('wife');
+        const girlfriend = document.getElementById('girlfriend');
+        const target = document.getElementById('target');
+        const levelDisplay = document.getElementById('level-display');
+        
+        // Variabili di gioco
+        let gameActive = false;
+        let playerX = 0;
+        let playerY = 0;
+        let playerSpeed = 5;
+        let wifeX = 0;
+        let wifeY = 0;
+        let wifeSpeed = 3;
+        let girlfriendX = 0;
+        let girlfriendY = 0;
+        let girlfriendSpeed = 2.5;
+        let targetX = 0;
+        let targetY = 0;
+        let level = 1;
+        let keysPressed = {};
+        let buildings = [];
+        let streets = [];
+        
+        // Dimensioni del campo di gioco
+        const gameWidth = 1280;
+        const gameHeight = 720;
+        
+        // Avvia il gioco
+        playButton.addEventListener('click', startGame);
+        
+        // Gestione tasti
+        document.addEventListener('keydown', function(e) {
+            keysPressed[e.key] = true;
+        });
+        
+        document.addEventListener('keyup', function(e) {
+            keysPressed[e.key] = false;
+        });
+        
+        // Riavvia il gioco dai pulsanti restart
+        restartButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                if (this.parentElement.id === 'game-win') {
+                    level++;
+                }
+                startGame();
+            });
+        });
+        
+        // Funzione per creare la città
+        function createCity() {
+            // Pulisci layout esistente
+            cityLayout.innerHTML = '';
+            buildings = [];
+            streets = [];
+            
+            // Crea strade orizzontali
+            const horizontalStreetsY = [180, 360, 540];
+            horizontalStreetsY.forEach(y => {
+                const street = document.createElement('div');
+                street.className = 'street-horizontal';
+                street.style.top = y - 25 + 'px';
+                cityLayout.appendChild(street);
+                streets.push({x: 0, y: y - 25, width: gameWidth, height: 50});
+                
+                // Aggiungi segnaletica stradale
+                for (let x = 50; x < gameWidth; x += 100) {
+                    const marking = document.createElement('div');
+                    marking.className = 'street-marking horizontal-marking';
+                    marking.style.top = y - 2.5 + 'px';
+                    marking.style.left = x + 'px';
+                    cityLayout.appendChild(marking);
+                }
+            });
+            
+            // Crea strade verticali
+            const verticalStreetsX = [220, 640, 1060];
+            verticalStreetsX.forEach(x => {
+                const street = document.createElement('div');
+                street.className = 'street-vertical';
+                street.style.left = x - 25 + 'px';
+                cityLayout.appendChild(street);
+                streets.push({x: x - 25, y: 0, width: 50, height: gameHeight});
+                
+                // Aggiungi segnaletica stradale
+                for (let y = 50; y < gameHeight; y += 100) {
+                    const marking = document.createElement('div');
+                    marking.className = 'street-marking vertical-marking';
+                    marking.style.left = x - 2.5 + 'px';
+                    marking.style.top = y + 'px';
+                    cityLayout.appendChild(marking);
+                }
+            });
+            
+            // Crea edifici nelle aree tra le strade
+            const buildingAreas = [
+                // Prima riga
+                {x: 0, y: 0, width: 195, height: 155},
+                {x: 245, y: 0, width: 370, height: 155},
+                {x: 665, y: 0, width: 370, height: 155},
+                {x: 1085, y: 0, width: 195, height: 155},
+                
+                // Seconda riga
+                {x: 0, y: 205, width: 195, height: 130},
+                {x: 245, y: 205, width: 370, height: 130},
+                {x: 665, y: 205, width: 370, height: 130},
+                {x: 1085, y: 205, width: 195, height: 130},
+                
+                // Terza riga
+                {x: 0, y: 385, width: 195, height: 130},
+                {x: 245, y: 385, width: 370, height: 130},
+                {x: 665, y: 385, width: 370, height: 130},
+                {x: 1085, y: 385, width: 195, height: 130},
+                
+                // Quarta riga
+                {x: 0, y: 565, width: 195, height: 155},
+                {x: 245, y: 565, width: 370, height: 155},
+                {x: 665, y: 565, width: 370, height: 155},
+                {x: 1085, y: 565, width: 195, height: 155},
+            ];
+            
+            buildingAreas.forEach(area => {
+                // Crea edificio principale
+                const building = document.createElement('div');
+                building.className = 'building';
+                building.style.left = area.x + 'px';
+                building.style.top = area.y + 'px';
+                building.style.width = area.width + 'px';
+                building.style.height = area.height + 'px';
+                
+                // Colore casuale per l'edificio
+                const hue = Math.floor(Math.random() * 60) + 180;
+                const sat = Math.floor(Math.random() * 30) + 10;
+                const light = Math.floor(Math.random() * 20) + 20;
+                building.style.backgroundColor = `hsl(${hue}, ${sat}%, ${light}%)`;
+                building.style.borderColor = `hsl(${hue}, ${sat}%, ${light + 10}%)`;
+                
+                cityLayout.appendChild(building);
+                buildings.push({x: area.x, y: area.y, width: area.width, height: area.height});
+                
+                // Crea finestre
+                const windowSize = Math.min(area.width, area.height) / 8;
+                const windowsPerRow = Math.floor(area.width / (windowSize * 1.5));
+                const windowsPerCol = Math.floor(area.height / (windowSize * 1.5));
+                
+                for (let row = 0; row < windowsPerCol; row++) {
+                    for (let col = 0; col < windowsPerRow; col++) {
+                        const windowX = area.x + (col + 0.5) * (area.width / windowsPerRow);
+                        const windowY = area.y + (row + 0.5) * (area.height / windowsPerCol);
+                        
+                        const windowEl = document.createElement('div');
+                        windowEl.className = 'building-window';
+                        windowEl.style.left = windowX - windowSize/2 + 'px';
+                        windowEl.style.top = windowY - windowSize/2 + 'px';
+                        windowEl.style.width = windowSize + 'px';
+                        windowEl.style.height = windowSize + 'px';
+                        
+                        // Finestra accesa o spenta?
+                        if (Math.random() > 0.3) {
+                            windowEl.style.backgroundColor = `rgba(255, 255, ${Math.floor(Math.random() * 100) + 155}, ${Math.random() * 0.5 + 0.5})`;
+                        } else {
+                            windowEl.style.backgroundColor = 'rgba(40, 40, 50, 0.8)';
+                        }
+                        
+                        cityLayout.appendChild(windowEl);
+                    }
+                }
+            });
+        }
+        
+        // Funzione per inizializzare e avviare il gioco
+        function startGame() {
+            // Nascondi menu e schermate di game over/win
+            menuScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            gameWinScreen.style.display = 'none';
+            
+            // Mostra lo schermo di gioco
+            gameScreen.style.display = 'block';
+            
+            // Crea la città
+            createCity();
+            
+            // Aggiorna il livello
+            levelDisplay.textContent = `Livello: ${level}`;
+            
+            // Posiziona i personaggi sulle strade
+            const streetPositions = getRandomStreetPositions(4);
+            
+            // Posizione iniziale giocatore
+            playerX = streetPositions[0].x;
+            playerY = streetPositions[0].y;
+            
+            // Posizione moglie
+            wifeX = streetPositions[1].x;
+            wifeY = streetPositions[1].y;
+            
+            // Posizione fidanzata
+            girlfriendX = streetPositions[2].x;
+            girlfriendY = streetPositions[2].y;
+            
+            // Posizione target
+            targetX = streetPositions[3].x;
+            targetY = streetPositions[3].y;
+            
+            // Aggiorna le velocità in base al livello
+            wifeSpeed = 3 + (level * 0.5);
+            girlfriendSpeed = 2.5 + (level * 0.5);
+            
+            // Aggiorna le posizioni sullo schermo
+            updatePositions();
+            
+            // Attiva il gioco
+            gameActive = true;
+            
+            // Avvia il loop di gioco
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Ottieni posizioni casuali sulle strade
+        function getRandomStreetPositions(count) {
+            const positions = [];
+            const usedPositions = new Set();
+            
+            // Funzione per trovare un punto casuale su una strada
+            function getRandomStreetPoint() {
+                const streetIndex = Math.floor(Math.random() * streets.length);
+                const street = streets[streetIndex];
+                
+                let x, y;
+                if (street.width > street.height) {
+                    // Strada orizzontale
+                    x = street.x + Math.random() * street.width;
+                    y = street.y + street.height / 2;
+                } else {
+                    // Strada verticale
+                    x = street.x + street.width / 2;
+                    y = street.y + Math.random() * street.height;
+                }
+                
+                return {x, y};
+            }
+            
+            for (let i = 0; i < count; i++) {
+                let pos;
+                let key;
+                let attempts = 0;
+                
+                // Trova una posizione non usata
+                do {
+                    pos = getRandomStreetPoint();
+                    key = `${Math.round(pos.x)},${Math.round(pos.y)}`;
+                    attempts++;
+                } while (usedPositions.has(key) && attempts < 50);
+                
+                usedPositions.add(key);
+                positions.push(pos);
+            }
+            
+            return positions;
+        }
+        
+        // Loop principale del gioco
+        function gameLoop() {
+            if (!gameActive) return;
+            
+            // Salva la posizione precedente
+            const prevX = playerX;
+            const prevY = playerY;
+            
+            // Muovi il giocatore in base ai tasti premuti
+            if (keysPressed['ArrowUp'] || keysPressed['w']) {
+                playerY -= playerSpeed;
+            }
+            if (keysPressed['ArrowDown'] || keysPressed['s']) {
+                playerY += playerSpeed;
+            }
+            if (keysPressed['ArrowLeft'] || keysPressed['a']) {
+                playerX -= playerSpeed;
+            }
+            if (keysPressed['ArrowRight'] || keysPressed['d']) {
+                playerX += playerSpeed;
+            }
+            
+            // Limita il movimento del giocatore all'interno dell'area di gioco
+            playerX = Math.max(20, Math.min(playerX, gameWidth - 20));
+            playerY = Math.max(20, Math.min(playerY, gameHeight - 20));
+            
+            // Controlla collisione con edifici
+            if (checkBuildingCollision(playerX, playerY)) {
+                playerX = prevX;
+                playerY = prevY;
+            }
+            
+            // Muovi la moglie verso il giocatore
+            moveTowardsPlayer(wifeX, wifeY, wifeSpeed, (newX, newY) => {
+                // Verifica collisione con edifici
+                if (!checkBuildingCollision(newX, newY)) {
+                    wifeX = newX;
+                    wifeY = newY;
+                }
+            });
+            
+            // Muovi la fidanzata verso il giocatore con un movimento più casuale
+            moveTowardsPlayerRandom(girlfriendX, girlfriendY, girlfriendSpeed, (newX, newY) => {
+                // Verifica collisione con edifici
+                if (!checkBuildingCollision(newX, newY)) {
+                    girlfriendX = newX;
+                    girlfriendY = newY;
+                }
+            });
+            
+            // Aggiorna le posizioni degli elementi sullo schermo
+            updatePositions();
+            
+            // Controlla le collisioni
+            checkCollisions();
+            
+            // Continua il loop
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Controlla collisione con gli edifici
+        function checkBuildingCollision(x, y) {
+            const radius = 20; // Raggio del personaggio
+            
+            for (const building of buildings) {
+                // Verifica se il personaggio è dentro un edificio
+                if (x + radius > building.x && x - radius < building.x + building.width &&
+                    y + radius > building.y && y - radius < building.y + building.height) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+        
+        // Funzione per muovere un personaggio verso il giocatore
+        function moveTowardsPlayer(x, y, speed, updateFunc) {
+            const dx = playerX - x;
+            const dy = playerY - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > speed) {
+                const ratio = speed / distance;
+                const moveX = x + dx * ratio;
+                const moveY = y + dy * ratio;
+                updateFunc(moveX, moveY);
+            } else {
+                updateFunc(playerX, playerY);
+            }
+        }
+        
+        // Funzione per muovere un personaggio verso il giocatore con un po' di casualità
+        function moveTowardsPlayerRandom(x, y, speed, updateFunc) {
+            const dx = playerX - x;
+            const dy = playerY - y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // Aggiungi un po' di movimento casuale
+            const randomX = (Math.random() - 0.5) * 20;
+            const randomY = (Math.random() - 0.5) * 20;
+            
+            if (distance > speed) {
+                const ratio = speed / distance;
+                const moveX = x + (dx * ratio) + randomX * 0.5;
+                const moveY = y + (dy * ratio) + randomY * 0.5;
+                updateFunc(Math.max(20, Math.min(moveX, gameWidth - 20)), 
+                           Math.max(20, Math.min(moveY, gameHeight - 20)));
+            } else {
+                updateFunc(
+                    Math.max(20, Math.min(playerX + randomX, gameWidth - 20)), 
+                    Math.max(20, Math.min(playerY + randomY, gameHeight - 20))
+                );
+            }
+        }
+        
+        // Aggiorna le posizioni degli elementi sullo schermo
+        function updatePositions() {
+            player.style.left = playerX - 20 + 'px';
+            player.style.top = playerY - 20 + 'px';
+            
+            wife.style.left = wifeX - 20 + 'px';
+            wife.style.top = wifeY - 20 + 'px';
+            
+            girlfriend.style.left = girlfriendX - 20 + 'px';
+            girlfriend.style.top = girlfriendY - 20 + 'px';
+            
+            target.style.left = targetX - 30 + 'px';
+            target.style.top = targetY - 30 + 'px';
+        }
+        
+        // Controlla le collisioni tra gli elementi
+        function checkCollisions() {
+            // Distanza tra giocatore e moglie
+            const distWife = getDistance(playerX, playerY, wifeX, wifeY);
+            
+            // Distanza tra giocatore e fidanzata
+            const distGirlfriend = getDistance(playerX, playerY, girlfriendX, girlfriendY);
+            
+            // Distanza tra giocatore e target
+            const distTarget = getDistance(playerX, playerY, targetX, targetY);
+            
+            // Collisione con moglie o fidanzata
+            if (distWife < 40 || distGirlfriend < 40) {
+                gameOver();
+            }
+            
+            // Collisione con target (vittoria)
+            if (distTarget < 50) {
+                levelComplete();
+            }
+        }
+        
+        // Calcola la distanza tra due punti
+        function getDistance(x1, y1, x2, y2) {
+            const dx = x1 - x2;
+            const dy = y1 - y2;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        // Funzione di game over
+        function gameOver() {
+            gameActive = false;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        // Funzione di completamento livello
+        function levelComplete() {
+            gameActive = false;
+            gameWinScreen.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
